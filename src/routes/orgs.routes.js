@@ -11,6 +11,7 @@ router.get('/:id', orgsController.getOrgById);
                     // to add new org
 router.post('/', orgsController.addOrg);
 
+
                                     // to update org (full details)
 router.put('/:id', orgsController.updateOrg);
 
