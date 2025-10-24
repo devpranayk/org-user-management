@@ -1,25 +1,31 @@
-
-const { Pool } = require('pg')
-require('dotenv').config()
-
-console.log("DB_USER:", process.env.DB_USER)
-console.log("DB_PASSWORD:", process.env.DB_PASSWORD)
+const { Pool } = require('pg');
 
 
-let pool 
+require('dotenv').config();
+
+
+
+    let pool;
 
 try {
-    pool = new Pool({
-        host: process.env.DB_HOST, 
-        port: process.env.DB_PORT,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME
-    })
 
-    console.log("pool created.. maybe its fine idk")
+  pool = new Pool({
+
+
+    host: process.env.DB_HOST,
+     port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
+
+  });
+
+
+
+  console.log("pool created.");
 } catch (err) {
-    console.log("db pool messed up : ", err)
+
+  console.log("db pool creation error : ", err);
 }
 
-module.exports = pool
+module.exports = pool;
