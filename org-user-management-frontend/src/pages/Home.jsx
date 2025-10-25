@@ -3,6 +3,32 @@ import api from '../services/api';
 import OrganizationCard from '../components/OrganizationCard';
 import { useNavigate } from 'react-router-dom';
 
+const [isModalOpen, setIsModalOpen] = useState(false);
+const [editingOrg, setEditingOrg] = useState(null);
+// Open modal for new org
+<button onClick={() => { setEditingOrg(null); setIsModalOpen(true); }}>Add Organization</button>
+
+// Open modal for editing
+const handleEdit = (org) => {
+  setEditingOrg(org);
+  setIsModalOpen(true);
+};
+
+// Modal component
+<OrgFormModal
+  isOpen={isModalOpen}
+  onClose={() => setIsModalOpen(false)}
+  orgData={editingOrg}
+  onSubmit={async (data) => {
+    if (editingOrg) {
+      await api.put(`/orgs/${editingOrg.org_id}`, data);
+    } else {
+      await api.post("/orgs", data);
+    }
+    fetchOrgs(); // refresh list
+  }}
+/>
+
 const Home = () => {
   const [orgs, setOrgs] = useState([]);
   const navigate = useNavigate();

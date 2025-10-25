@@ -1,69 +1,71 @@
-import React, { useState, useEffect } from 'react';
-import api from '../services/api';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import api from "../services/api";
+import OrgFormModal from "../components/OrgFormModal";
+import { toast } from "react-toastify";
 
 const EditOrganization = () => {
   const { id } = useParams();
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchOrg();
-  }, []);
+  const [orgData, setOrgData] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Fetch organization by ID
   const fetchOrg = async () => {
     try {
-      const res = await api.get(`/orgs/${id}`); // fetch org details
-      setName(res.data.name);
-      setDescription(res.data.description);
+      const res = await api.get(`/orgs/${id}`);
+      setOrgData({
+        name: res.data.org_name,
+        slug: res.data.org_slug,
+        email: res.data.org_email,
+        contactNumber: res.data.contact_number,
+      });
+      setIsModalOpen(true); // open modal once data is loaded
     } catch (err) {
-      console.error('Error fetching organization:', err);
+      console.error("Error fetching org:", err);
+      toast.error("Organization not found");
+      navigate("/"); // go back to home if org not found
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    fetchOrg();
+  }, [id]);
+
+  // Handle update submission
+  const handleUpdateOrg = async (data) => {
     try {
-      await api.put(`/orgs/${id}`, { name, description }); // update org
-      navigate('/');
+      const payload = {
+        org_name: data.name,
+        org_slug: data.slug || data.name.toLowerCase().replace(/\s+/g, "-"),
+        org_email: data.email,
+        contact_number: data.contactNumber,
+      };
+
+      const res = await api.put(`/orgs/${id}`, payload);
+      toast.success(`Organization "${res.data.org_name}" updated successfully`);
+      navigate("/"); // back to home
     } catch (err) {
-      console.error('Error updating organization:', err);
+      console.error("Update organization error:", err);
+      if (err.response && err.response.data?.error) {
+        toast.error(err.response.data.error);
+      } else {
+        toast.error("Something went wrong while updating organization");
+      }
     }
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen flex justify-center items-start">
-      <form
-        className="bg-white p-6 rounded-lg shadow-md w-full max-w-md"
-        onSubmit={handleSubmit}
-      >
-        <h2 className="text-xl font-bold mb-4">Edit Organization</h2>
-
-        <label className="block mb-2 text-gray-700">Name</label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2 mb-4"
-          required
+    <div className="min-h-screen bg-gray-100 p-8 flex justify-center items-center">
+      {orgData && (
+        <OrgFormModal
+          isOpen={isModalOpen}
+          onClose={() => navigate("/")}
+          orgData={orgData}
+          onSubmit={handleUpdateOrg}
         />
-
-        <label className="block mb-2 text-gray-700">Description</label>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2 mb-4"
-          required
-        />
-
-        <button
-          type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          Update
-        </button>
-      </form>
+      )}
     </div>
   );
 };
