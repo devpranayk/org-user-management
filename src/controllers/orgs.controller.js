@@ -17,6 +17,10 @@ exports.getAllOrgs = async (req, res) => {
   }
 };
 
+
+
+
+
                       // get org by id
 
 exports.getOrgById = async (req, res) => {
@@ -134,4 +138,34 @@ exports.addOrg = async (req, res) => {
   }  
 
   
+};
+
+                            // update only org logo
+
+exports.updateOrgLogo = async (req, res) => {
+  const id = req.params.id;
+  const { org_logo_url } = req.body; // can be URL or base64 string
+
+  if (!org_logo_url) {
+    return res.status(400).json({ error: 'org_logo_url is required' });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE organizations 
+       SET org_logo_url = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE org_id = $2
+       RETURNING *`,
+      [org_logo_url, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Organization not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('updateOrgLogo error:', err);
+    res.status(500).json({ error: 'Cannot update org logo' });
+  }
 };
